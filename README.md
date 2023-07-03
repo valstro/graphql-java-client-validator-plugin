@@ -57,3 +57,10 @@ USAGE :
   </configuration>
  </plugin>
 ```
+
+
+MERGING PRs:
+----------------
+After each merge to main, the package is built and an attempt is made to release to the Github Java Repository. This only succeeds where the version does not already exist in the repo.
+
+Please make sure the version is increased in the `pom.xml` file before every merge to main.
