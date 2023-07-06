@@ -3,7 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - main
+      - ukondoz/test-maven-packaging
+#      - main
 
 jobs:
   publish:
@@ -15,8 +16,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Build
-        run: mvn --batch-mode --update-snapshots package
+        run: mvn --batch-mode --update-snapshots package -Dpackaging=maven-plugin
       - name: Publish
-        run: mvn --batch-mode deploy
+        run: mvn --batch-mode deploy -Dpackaging=maven-plugin
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

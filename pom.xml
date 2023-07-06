@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.valstro.plugin</groupId>
     <artifactId>graphql-java-client-validator-plugin</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.1-SNAPSHOT</version>
     <name>graphql-java-client-validator-plugin</name>
     <packaging>maven-plugin</packaging>
 
