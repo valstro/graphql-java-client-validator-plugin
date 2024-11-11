@@ -1,0 +1,32 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.apache.maven.plugin.my.unit</groupId>
+    <artifactId>project-to-test</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Test MyMojo</name>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>graphql-java-client-validator-plugin</artifactId>
+                <configuration>
+                    <generatedPackage>com.valstro.plugin.generated</generatedPackage>
+                    <clientClasses>
+                        <clientClass>com.valstro.plugin.java_client.match_enum.TagCodeClient</clientClass>
+                    </clientClasses>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>validate-graphql-client</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
