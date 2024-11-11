@@ -5,6 +5,7 @@ import com.valstro.plugin.util.MockClassLoaderUtil;
 import com.valstro.plugin.validator.FieldValidator;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -34,6 +35,26 @@ public class GraphQLJavaClientValidatorTest extends AbstractMojoTestCase {
         assertTrue(pom.exists());
 
         return (GraphQLJavaClientValidator) lookupMojo("validate-graphql-client", pom);
+    }
+
+    public void testValidatingEnumMatch() throws Exception {
+        this.mojo = lookUpForMojo("src/test/resources/unit/project-to-test/plugin-match-enum-config.xml");
+        assertNotNull(mojo);
+
+        setUpVariable();
+
+        // When execute the validation goal
+        mojo.executeGoal();
+    }
+
+    public void testValidatingRecursiveEnumMatch() throws Exception {
+        this.mojo = lookUpForMojo("src/test/resources/unit/project-to-test/plugin-recursive-enum-config.xml");
+        assertNotNull(mojo);
+
+        setUpVariable();
+
+        // When execute the validation goal
+        mojo.executeGoal();
     }
 
     public void testValidatingMisMatchedFieldType() throws Exception {

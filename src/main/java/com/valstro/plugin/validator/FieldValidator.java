@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,29 @@ public class FieldValidator {
             checkFieldName(codeGenField, field);
 
             final Class<?> clazzType = resolveFieldType(field);
-            final Class<?> genClazzType = resolveFieldType(codeGenField);
+
+            if (typeIsAnEnum((clazzType))) {
+               var codeGen = holder.getCodeGenClassFromName(clazzType.getSimpleName());
+               var enumValuesClass = clazzType.getEnumConstants();
+
+               Set<String> enumValues = Arrays.stream(codeGen.getEnumConstants())
+                .map(Object::toString)
+                .collect(Collectors.toSet());
+
+                LOG.info(String.format("Enum - CodeGen name: %s Class name: %s", codeGen.getName(), clazzType.getName()));
+
+               for (Object value : enumValuesClass) {
+                   if (!enumValues.contains(value.toString())) {
+                        throw new MojoFailureException(String.format("Enum value %s does not match code gen %s", value, String.join(", ", enumValues)));
+                   }
+               }
+
+               if (enumValuesClass.length != enumValues.size()) {
+                   throw new MojoFailureException(String.format("Enum value size elements %d does not match code gen size %d", enumValuesClass.length, enumValues.size() ));
+               }
+
+                continue;
+            }
 
             if (typeIsAClassReference(clazzType)) {
                 validate(clazzType, holder.getCodeGenClassFromName(clazzType.getSimpleName()));
@@ -43,6 +66,7 @@ public class FieldValidator {
             }
 
             // checking field type
+            final Class<?> genClazzType = resolveFieldType(codeGenField);
             if (!genClazzType.isPrimitive() && clazzType.isPrimitive()) {
                 // check Integer against int
                 var primitiveType = resolvePrimitiveType(genClazzType);
@@ -55,29 +79,29 @@ public class FieldValidator {
 
     private static void checkFieldExist(Map<String, Field > codeGenFields, Field classField) throws MojoFailureException {
         if (!codeGenFields.containsKey(classField.getName()))
-            throw new MojoFailureException("Cannot find field name " + classField.getName() + " in code-gen class");
+            throw new MojoFailureException(String.format("Cannot find field name %s in code-gen class", classField.getName()));
     }
 
     private static void checkFieldName(Field codeGenField, Field classField) throws MojoFailureException {
         if (!classField.getName().equals(codeGenField.getName()))
-            throw new MojoFailureException("Codegen field name " + codeGenField.getName() + " does not match java class field name " + classField.getName());
+            throw new MojoFailureException(String.format("Codegen field name %s does not match java class field name %s", codeGenField.getName(), classField.getName()));
     }
 
     private static void checkGenericFieldType(Field codeGenField, Field classField) throws MojoFailureException {
         if (!classField.getGenericType().equals(codeGenField.getGenericType()))
-            throw new MojoFailureException("Code-gen " + codeGenField.getName() + " field is " + codeGenField.getGenericType() + ", does not match java class field type " + classField.getType());
+            throw new MojoFailureException(String.format("Code-gen %s field is %s, does not match java class field type %s",codeGenField.getName(), codeGenField.getGenericType(),  classField.getType()));
     }
 
     private static void checkFieldType(String primitiveType, Class<?> classFieldType) throws MojoFailureException {
         if (!primitiveType.equals(classFieldType.getName()))
-            throw new MojoFailureException("Code-gen field type " + classFieldType.getSimpleName() + " does not match class field type " + classFieldType.getSimpleName());
+            throw new MojoFailureException(String.format("Code-gen field type %s does not match class field type %s", classFieldType.getSimpleName(), classFieldType.getSimpleName()));
     }
 
     private static String resolvePrimitiveType(Class<?> codeGenFieldType) throws MojoFailureException {
         try {
             return ((Class<?>) codeGenFieldType.getField("TYPE").get(null)).getName();
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new MojoFailureException("Expected a java wrapper type but it is not " + codeGenFieldType.getName());
+            throw new MojoFailureException(String.format("Expected a java wrapper type but it is not %s", codeGenFieldType.getName()));
         }
     }
 
@@ -88,6 +112,10 @@ public class FieldValidator {
 
     private boolean typeIsAClassReference(Class<?> clazz) {
         return holder.isExist(clazz.getSimpleName());
+    }
+
+    private boolean typeIsAnEnum(Class<?> clazz) {
+        return clazz.isEnum();
     }
 
 }
