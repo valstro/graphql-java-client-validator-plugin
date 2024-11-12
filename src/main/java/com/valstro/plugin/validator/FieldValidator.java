@@ -37,26 +37,8 @@ public class FieldValidator {
 
             final Class<?> clazzType = resolveFieldType(field);
 
-            if (typeIsAnEnum((clazzType))) {
-               var codeGen = holder.getCodeGenClassFromName(clazzType.getSimpleName());
-               var enumValuesClass = clazzType.getEnumConstants();
-
-               Set<String> enumValues = Arrays.stream(codeGen.getEnumConstants())
-                .map(Object::toString)
-                .collect(Collectors.toSet());
-
-                LOG.info(String.format("Enum - CodeGen name: %s Class name: %s", codeGen.getName(), clazzType.getName()));
-
-               for (Object value : enumValuesClass) {
-                   if (!enumValues.contains(value.toString())) {
-                        throw new MojoFailureException(String.format("Enum value %s does not match code gen %s", value, String.join(", ", enumValues)));
-                   }
-               }
-
-               if (enumValuesClass.length != enumValues.size()) {
-                   throw new MojoFailureException(String.format("Enum value size elements %d does not match code gen size %d", enumValuesClass.length, enumValues.size() ));
-               }
-
+            if (clazzType.isEnum()) {
+                checkEnumValues(clazzType);
                 continue;
             }
 
@@ -74,6 +56,27 @@ public class FieldValidator {
             } else {
                 checkGenericFieldType(codeGenField, field);
             }
+        }
+    }
+
+    private void checkEnumValues(final Class<?> clazzType) throws MojoFailureException {
+        var codeGen = this.holder.getCodeGenClassFromName(clazzType.getSimpleName());
+        var enumValuesClass = clazzType.getEnumConstants();
+
+        Set<String> enumValues = Arrays.stream(codeGen.getEnumConstants())
+                .map(Object::toString)
+                .collect(Collectors.toSet());
+
+        LOG.info("Enum - CodeGen name: {} Class name: {}", codeGen.getName(), clazzType.getName());
+
+        for (Object value : enumValuesClass) {
+            if (!enumValues.contains(value.toString())) {
+                throw new MojoFailureException(String.format("Enum value %s does not match code gen %s", value, String.join(", ", enumValues)));
+            }
+        }
+
+        if (enumValuesClass.length != enumValues.size()) {
+            throw new MojoFailureException(String.format("Enum value size elements %d does not match code gen size %d", enumValuesClass.length, enumValues.size() ));
         }
     }
 
@@ -113,9 +116,4 @@ public class FieldValidator {
     private boolean typeIsAClassReference(Class<?> clazz) {
         return holder.isExist(clazz.getSimpleName());
     }
-
-    private boolean typeIsAnEnum(Class<?> clazz) {
-        return clazz.isEnum();
-    }
-
 }
