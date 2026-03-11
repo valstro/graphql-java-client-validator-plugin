@@ -25,7 +25,7 @@ jobs:
           aws-region: us-east-2
 
       - name: Login to CodeArtifact
-        uses: valstro/actions/codeartifact-login:v0.78.1
+        uses: valstro/actions/codeartifact-login@v0.78.1
 
       - name: Build
         run: mvn --batch-mode --update-snapshots -s .mvn/settings.xml package
