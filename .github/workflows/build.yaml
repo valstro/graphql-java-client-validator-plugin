@@ -8,15 +8,31 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-2
+
+      - name: Login to CodeArtifact
+        uses: valstro/actions/codeartifact-login@v0.78.1
+
       - name: Build
-        run: mvn --batch-mode --update-snapshots package
-      - name: Publish
-        run: mvn --batch-mode deploy
+        run: mvn --batch-mode --update-snapshots -s .mvn/settings.xml package
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
+
+      - name: Publish
+        run: mvn --batch-mode -s .mvn/settings.xml deploy
+        env:
+          CODEARTIFACT_AUTH_TOKEN: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
